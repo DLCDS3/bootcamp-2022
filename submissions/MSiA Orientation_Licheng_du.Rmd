@@ -1,0 +1,40 @@
+---
+title: "MSiA Orientation"
+author: "Licheng Du"
+date: '2022-09-19'
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+```
+
+
+```{r}
+schools = read_csv("nys_schools.csv")
+acs = read_csv("nys_acs.csv")
+schools
+```
+
+```{r}
+schools = schools %>% mutate_all(funs(replace(.,.<0,NA)))
+schools = schools[complete.cases(schools),]
+full_data = left_join(schools, acs, by = c('county_name','year'))
+full_data
+```
+
+```{r}
+ggplot(full_data,aes(mean_math_score,county_per_poverty),na.rm = T) + geom_point(na.rm = T) + facet_grid(~ year)
+full_data %>% ggplot(aes(mean_ela_score,county_per_poverty),na.rm = T) + geom_point(na.rm = T)+ facet_grid(~ year)
+full_data %>% filter(year == 2014) %>% ggplot(aes(mean_ela_score,county_per_poverty),na.rm = T) + geom_point(na.rm = T)
+```
+
+```{r}
+top5 = full_data %>% group_by(county_name) %>% summarise(mean_county_per_poverty = mean(county_per_poverty,na.rm = T)) %>% arrange(desc(mean_county_per_poverty)) %>% head(5)
+
+bottom5 = full_data %>% group_by(county_name) %>% summarise(mean_county_per_poverty = mean(county_per_poverty,na.rm = T)) %>% arrange(mean_county_per_poverty) %>% head(5)
+
+left_join(top5,full_data,by = 'county_name')
+```
+
